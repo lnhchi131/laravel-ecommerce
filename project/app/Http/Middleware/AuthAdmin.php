@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -22,10 +23,13 @@ class AuthAdmin
             {
                 return $next($request);
             }
-            else
-            {
-                return redirect()->route('home.index');
+            else{
+                session::flush();
+                return redirect()->route('login');
             }
+        }
+        else{
+            return redirect()->route('login');
         }
       
     }
