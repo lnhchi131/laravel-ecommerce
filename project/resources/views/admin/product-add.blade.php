@@ -28,7 +28,7 @@
             </ul>
         </div>
         <!-- form-add-product -->
-        <form class="tf-section-2 form-add-product" method="POST" enctype="multipart/form-data" action="">
+        <form class="tf-section-2 form-add-product" method="POST" enctype="multipart/form-data" action="{{ route('admin.product.store') }}">
         @csrf
             <div class="wg-box">
                 <fieldset class="name">
@@ -38,6 +38,7 @@
                     <div class="text-tiny">Do not exceed 100 characters when entering the
                         product name.</div>
                 </fieldset>
+                @error('name') <sapn class="alert alert-danger">{{ $message }} @enderror
 
                 <fieldset class="name">
                     <div class="body-title mb-10">Slug <span class="tf-color-1">*</span></div>
@@ -45,6 +46,7 @@
                     <div class="text-tiny">Do not exceed 100 characters when entering the
                         product name.</div>
                 </fieldset>
+                @error('slug') <sapn class="alert alert-danger">{{ $message }} @enderror
 
                 <div class="gap22 cols">
                     <fieldset class="category">
@@ -60,6 +62,7 @@
                             </select>
                         </div>
                     </fieldset>
+                    @error('category_id') <sapn class="alert alert-danger">{{ $message }} @enderror
                     <fieldset class="brand">
                         <div class="body-title mb-10">Brand <span class="tf-color-1">*</span>
                         </div>
@@ -72,6 +75,7 @@
                             </select>
                         </div>
                     </fieldset>
+                    @error('brand_id') <sapn class="alert alert-danger">{{ $message }} @enderror
                 </div>
 
                 <fieldset class="shortdescription">
@@ -80,6 +84,7 @@
                     <div class="text-tiny">Do not exceed 100 characters when entering the
                         product name.</div>
                 </fieldset>
+                @error('short_description') <sapn class="alert alert-danger">{{ $message }} @enderror
 
                 <fieldset class="description">
                     <div class="body-title mb-10">Description <span class="tf-color-1">*</span>
@@ -87,6 +92,8 @@
                     <textarea class="mb-10" name="description" placeholder="Description" tabindex="0" aria-required="true" required="">{{ old('description')}}</textarea>
                     <div class="text-tiny">Do not exceed 100 characters when entering the product name.</div>
                 </fieldset>
+                @error('description') <sapn class="alert alert-danger">{{ $message }} @enderror
+
             </div>
             <div class="wg-box">
                 <fieldset>
@@ -107,6 +114,7 @@
                         </div>
                     </div>
                 </fieldset>
+                @error('image') <sapn class="alert alert-danger">{{ $message }} @enderror
 
                 <fieldset>
                     <div class="body-title mb-10">Upload Gallery Images</div>
@@ -126,6 +134,7 @@
                         </div>
                     </div>
                 </fieldset>
+                @error('images') <sapn class="alert alert-danger">{{ $message }} @enderror
 
                 <div class="cols gap22">
                     <fieldset class="name">
@@ -133,11 +142,15 @@
                                 class="tf-color-1">*</span></div>
                         <input class="mb-10" type="text" placeholder="Enter regular price" name="regular_price" tabindex="0" value="{{ old('regular_price')}}" aria-required="true" required="">
                     </fieldset>
+                    @error('regular_price') <sapn class="alert alert-danger">{{ $message }} @enderror
+
                     <fieldset class="name">
                         <div class="body-title mb-10">Sale Price <span
                                 class="tf-color-1">*</span></div>
                         <input class="mb-10" type="text" placeholder="Enter sale price" name="sale_price" tabindex="0" value="{{ old('sale_price')}}" aria-required="true" required="">
                     </fieldset>
+                    @error('sale_price') <sapn class="alert alert-danger">{{ $message }} @enderror
+
                 </div>
 
 
@@ -147,11 +160,15 @@
                         </div>
                         <input class="mb-10" type="text" placeholder="Enter SKU" name="SKU" tabindex="0" value="{{ old('SKU')}}" aria-required="true" required="">
                     </fieldset>
+                    @error('SKU') <sapn class="alert alert-danger">{{ $message }} @enderror
+
                     <fieldset class="name">
                         <div class="body-title mb-10">Quantity <span class="tf-color-1">*</span>
                         </div>
                         <input class="mb-10" type="text" placeholder="Enter quantity" name="quantity" tabindex="0" value="{{ old('quantity')}}" aria-required="true" required="">
                     </fieldset>
+                    @error('quantity') <sapn class="alert alert-danger">{{ $message }} @enderror
+
                 </div>
 
                 <div class="cols gap22">
@@ -164,6 +181,8 @@
                             </select>
                         </div>
                     </fieldset>
+                    @error('stock_status') <sapn class="alert alert-danger">{{ $message }} @enderror
+
                     <fieldset class="name">
                         <div class="body-title mb-10">Featured</div>
                         <div class="select mb-10">
@@ -173,6 +192,8 @@
                             </select>
                         </div>
                     </fieldset>
+                    @error('featured') <sapn class="alert alert-danger">{{ $message }} @enderror
+
                 </div>
                 <div class="cols gap10">
                     <button class="tf-button w-full" type="submit">Add product</button>
@@ -184,3 +205,38 @@
     <!-- /main-content-wrap -->
 </div>
 @endsection
+
+@push("scripts")
+    <script>
+            $(function(){
+                $("#myFile").on("change",function(e){
+                    const photoInp = $("#myFile");                    
+                    const [file] = this.files;
+                    if (file) {
+                        $("#imgpreview img").attr('src',URL.createObjectURL(file));
+                        $("#imgpreview").show();                        
+                    }
+                });
+
+                $("#gFile").on("change",function(e){
+                    const photoInp = $("#gFile");                    
+                    const [file] = this.files;
+                    $.each(gphotos,function(key,val){
+                        $("#galUpload").prepend('div class="item gitems"><img src="${URL.createObjectURL(val)}" /></div>');
+                    });
+
+                });
+
+                $("input[name='name']").on("change",function(){
+                    $("input[name='slug']").val(StringToSlug($(this).val()));
+                });
+                
+            });   
+            
+            function StringToSlug(Text) {
+                return Text.toLowerCase()
+                .replace(/[^\w ]+/g, "")
+                .replace(/ +/g, "-");
+            }     
+    </script>
+@endpush

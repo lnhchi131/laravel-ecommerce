@@ -86,9 +86,9 @@ class AdminController extends Controller
     {
         $destinationPath = public_path('uploads/brands');
         $img = Image::read($image);
-        $img->resize(124, 124, function ($constraint) {
-            $constraint->aspectRatio();
-        })->save($destinationPath . '/' . $imageName);
+        $img->resize(124, 124)->save($destinationPath . '/' . $imageName);
+
+
     }
 
     public function brand_delete($id)
@@ -198,5 +198,93 @@ class AdminController extends Controller
         $categories = Category::select('id','name')->orderBy('name')->get();
         $brands = Brand::select('id','name')->orderBy('name')->get();
         return view('admin.product-add',compact('categories','brands'));
+    }
+
+    public function product_store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'slug' => 'required|unique:products,slug',
+            'short_description' => 'required',
+            'description' => 'required',
+            'regular_price' => 'required|numeric',
+            'sale_price' => 'required|numeric',
+            'SKU' => 'required',
+            'stock_status' => 'required',
+            'featured' => 'required',
+            'quantity' => 'required',
+            'image' => 'required|mimes:png,jpg,jpeg|max:2048',
+            'category_id' => 'required',
+            'brand_id' => 'required',
+        ]);
+
+        $product = new Product();
+        $product->name = $request->name;
+        $product->slug = Str::slug($request->name);
+        $product->short_description = $request->short_description;
+        $product->description = $request->description;
+        $product->regular_price = $request->regular_price;
+        $product->sale_price = $request->sale_price;
+        $product->SKU = $request->SKU;
+        $product->stock_status = $request->stock_status;
+        $product->featured = $request->featured;
+        $product->quantity = $request->quantity;
+        $product->image = $request->image;
+        $product->category_id = $request->category_id;
+        $product->brand_id = $request->brand_id;
+    
+        $current_time = Carbon::now()->timestamp;
+
+       if($request->hasFile('image'))
+       {
+           $image = $request->file('image');
+           $imageName = $current_time . '.' . $image->extension();
+           $this->GenerateProductThumbailImage($image, $imageName);
+           $product->image = $imageName;
+           
+       }
+       $gallery_arr = array();
+       $gallery_images = "";
+       $counter = 1;
+
+       if($request->hasFile('image'))
+       {
+            $allowedfileExtension = ['jpg', 'png', 'jpeg'];
+            $files = $request->file('image');
+            foreach($files as $file)
+            {
+                $genxtension = $file->getClientOriginalExtension();
+                $gcheck = in_array($genxtension, $allowedfileExtension);
+                if($gcheck)
+                {
+                    $gfileName = $current_time."-".$counter.".".$genxtension;
+                    $this->GenerateProductThumbailImage($file, $gfileName);
+                    array_push($gallery_arr,$gfileName);
+                    $counter = $counter + 1;
+                }
+            }
+            $gallery_images = implode(",",$gallery_arr);
+       }
+       $product->images = $gallery_images;
+       $product->save();
+       return redirect()->route('admin.products')->with('status','Record has been added successfully !');
+    }
+
+    public function GenerateProductThumbailImage($image, $imageName)
+    {   
+        $destinationPathThumbnail = public_path('uploads/products/thumbnails');
+        $destinationPath = public_path('uploads/products');
+        $img = Image::read($image->path());
+
+        $img->cover(540, 689, "top");
+        $img->resize(540, 689, function ($constraint) {
+                $constraint->aspectRatio();
+            })
+            ->save($destinationPath.'/'.$imageName);
+        
+        $img->resize(104, 104, function ($constraint) {
+            $constraint->aspectRatio();
+        })
+        ->save($destinationPathThumbnail.'/'.$imageName);
     }
 }
