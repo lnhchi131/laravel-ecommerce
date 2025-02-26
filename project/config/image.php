@@ -11,5 +11,7 @@ return [
      | "Intervention\\Image\\Imagick\\Driver"
      |
      */
-    'driver' => 'imagick'
+    'Image' => Intervention\Image\Laravel\Facades\Image::class,
+
+    'driver' => 'gd', // Đảm bảo đây là 'gd
 ];
